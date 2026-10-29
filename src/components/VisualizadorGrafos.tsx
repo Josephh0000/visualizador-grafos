@@ -3,6 +3,7 @@ import { dfsGenerator } from '../algorithms/dfs';
 import { dfsSampleGraph, dfsSampleLayout } from '../data/sampleGraphs';
 import type { DfsNodeStatus, DfsState } from '../types/dfs';
 import type { Edge, Graph, NodeId } from '../types/graph';
+import CodigoPython from './CodigoPython';
 import './VisualizadorGrafos.css';
 
 /** Tipo exacto del generador del DFS. */
@@ -125,7 +126,8 @@ export default function VisualizadorGrafos({
         </label>
       </div>
 
-      {/* --- Dibujo muy básico del grafo con SVG --- */}
+      {/* --- Grafo (izquierda) + código Python sincronizado (derecha) --- */}
+      <div className="viz__panel">
       <svg className="viz__svg" viewBox="0 0 400 330" role="img" aria-label="Grafo">
         {graph.edges.map((e) => {
           const a = layout[e.from];
@@ -166,6 +168,8 @@ export default function VisualizadorGrafos({
           );
         })}
       </svg>
+      <CodigoPython estado={estado} inicio={startNode} />
+      </div>
 
       <div className="viz__leyenda">
         <span><i style={{ background: STATUS_COLOR['no-visitado'] }} /> No visitado</span>

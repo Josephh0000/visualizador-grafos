@@ -1,6 +1,6 @@
 .viz {
   font-family: system-ui, sans-serif;
-  max-width: 760px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 16px;
   color: #0f172a;
@@ -26,3 +26,24 @@
 .viz__velocidad { display: flex; align-items: center; gap: 6px; font-size: .85rem; }
 /* Transición suave entre estados (solo suaviza el cambio de color; el estado lo dicta el generador). */
 .viz__svg circle, .viz__svg line { transition: fill .3s ease, stroke .3s ease, stroke-width .3s ease; }
+
+/* ---------- Panel grafo + código Python ---------- */
+.viz__panel { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.viz__panel .viz__svg { flex: 1 1 380px; max-width: 460px; }
+.py {
+  flex: 1 1 420px; min-width: 0; background: #1e1e2e; color: #cdd6f4;
+  border-radius: 8px; overflow: hidden; font-family: ui-monospace, Menlo, monospace; font-size: .85rem;
+}
+.py__titulo { background: #181825; padding: 8px 12px; color: #a6adc8; display: flex; align-items: center; gap: 8px; }
+.py__punto { width: 10px; height: 10px; border-radius: 50%; background: #f9e2af; display: inline-block; }
+.py .py__codigo { margin: 0; padding: 8px 0; background: transparent; border-radius: 0; overflow-x: auto; font-size: .85rem; }
+.py__linea { display: flex; gap: 12px; padding: 1px 12px; border-left: 3px solid transparent; transition: background .25s ease; }
+.py__linea--activa { background: rgba(250, 204, 21, .18); border-left-color: #facc15; color: #fff; font-weight: 600; }
+.py__num { color: #6c7086; min-width: 18px; text-align: right; user-select: none; }
+.py__info { border-top: 1px solid #313244; padding: 10px 12px; }
+.py__info p { margin: 3px 0; }
+.py__info b { color: #89b4fa; }
+.py__explicacion { color: #f9e2af; margin-bottom: 8px !important; }
+.py__pila { list-style: none; margin: 4px 0 0; padding: 0; }
+.py__pila li { padding: 2px 8px; margin-bottom: 2px; background: #313244; border-radius: 4px; color: #a6adc8; }
+.py__pila li.py__pila--top { background: #facc15; color: #1e1e2e; font-weight: 600; }
