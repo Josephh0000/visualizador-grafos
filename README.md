@@ -11,8 +11,12 @@ Cada algoritmo está implementado como **función generadora** (`function*`) que
 | # | Algoritmo | Estado |
 |---|-----------|--------|
 | 1 | Búsqueda en Profundidad (DFS recursivo) | ✅ Implementado + pruebas |
-| 2 | Coloreo Bipartito (BFS, 2 colores) | ⏳ Pendiente |
-| 3 | Bellman-Ford | ⏳ Pendiente |
+| 2 | Coloreo Bipartito (BFS, 2 colores) | ✅ Implementado + pruebas |
+| 3 | Bellman-Ford (pesos negativos + detección de ciclo negativo) | ✅ Implementado + pruebas |
+
+Cada algoritmo tiene su pestaña, con el grafo, el **código Python con la línea actual
+resaltada**, las variables del paso, cajitas con el resultado acumulado, y botones
+**Siguiente Paso / Reproducir / Reiniciar**.
 
 ## Cómo ejecutar
 
@@ -27,19 +31,23 @@ npm run build      # typecheck estricto + build de producción
 
 ```
 src/
-├── types/
-│   ├── graph.ts            # Graph, Edge, AdjacencyList, NodeId
-│   └── dfs.ts              # DfsState, DfsActionType, DfsNodeStatus
-├── utils/graphBuilder.ts   # Construye lista de adyacencia desde lista de aristas
-├── algorithms/
-│   ├── dfs.ts              # dfsGenerator (function* + yield* recursivo)
-│   └── __tests__/dfs.test.ts
-├── data/sampleGraphs.ts    # Grafo de ejemplo + posiciones para el SVG
+├── types/          # graph.ts, dfs.ts, bipartite.ts, bellmanFord.ts, visual.ts
+├── algorithms/     # LÓGICA PURA (generadores function*)
+│   ├── dfs.ts
+│   ├── bipartite.ts
+│   ├── bellmanFord.ts
+│   └── __tests__/
+├── visual/         # Adaptadores: estado del algoritmo → frame visual (+ código Python)
+│   ├── dfsView.ts, bipartiteView.ts, bellmanFordView.ts
+│   └── algorithms.ts   # registro de pestañas
 ├── components/
-│   ├── VisualizadorGrafos.tsx
-│   └── VisualizadorGrafos.css
-├── App.tsx
-└── main.tsx
+│   ├── VisualizadorGrafos.tsx   # pestañas
+│   ├── AlgorithmPlayer.tsx      # useRef(generador) + useState(frame) + botones
+│   ├── GraphCanvas.tsx          # dibujo SVG
+│   ├── CodigoPython.tsx         # código con línea resaltada + variables
+│   └── ResultadoCajas.tsx
+├── data/sampleGraphs.ts
+└── utils/
 ```
 
 ## DFS: qué emite cada `yield`
@@ -79,3 +87,15 @@ function* dfsVisit(node, ctx, parent) {
 - El último `yield` vive en `useState`.
 - El botón **Siguiente Paso** ejecuta `generador.current.next()` y guarda `value`.
 - **Reiniciar** crea un generador nuevo.
+
+## Coloreo Bipartito: qué emite cada `yield`
+
+`INICIO`, `NUEVA_COMPONENTE`, `DESENCOLAR`, `COLOREAR`, `VECINO_OK`, `CONFLICTO`, `FIN`.
+Cada `BipartiteState` incluye `colors` (`{ A: 0, B: 1 }`), `partitionX`, `partitionY`,
+`queue`, `currentEdge`, `conflictEdge` (se pinta de rojo) e `isBipartite`.
+
+## Bellman-Ford: qué emite cada `yield`
+
+`INICIO`, `INICIO_RONDA`, `EVALUAR`, `ACTUALIZAR`, `FIN_RONDA`, `VERIFICAR`, `CICLO_NEGATIVO`, `FIN`.
+Cada `BellmanFordState` incluye `round` / `totalRounds` (V − 1), `currentEdge`, `updated`,
+`dist` (mapa de distancias), `prev`, `negativeCycleEdge` y `hasNegativeCycle`.

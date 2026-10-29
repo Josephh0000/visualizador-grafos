@@ -1,113 +1,75 @@
-import type { DfsActionType, DfsState } from '../types/dfs';
-
-/**
- * Panel que muestra el DFS escrito en Python y resalta la línea
- * que corresponde al paso actual que emitió el generador.
- *
- * El código Python es solo para explicar: la ejecución real la hace
- * `dfsGenerator` (TypeScript). Cada `actionType` del estado se mapea
- * a las líneas equivalentes del pseudocódigo en Python.
- */
-
-/** Código Python del DFS recursivo (una entrada por línea). */
-const PYTHON_LINES: readonly string[] = [
-  'def dfs(grafo, inicio):',
-  '    visitados = []',
-  '    dfs_visitar(grafo, inicio, visitados)',
-  '    # componentes desconectados',
-  '    for nodo in grafo:',
-  '        if nodo not in visitados:',
-  '            dfs_visitar(grafo, nodo, visitados)',
-  '    return visitados',
-  '',
-  'def dfs_visitar(grafo, nodo, visitados):',
-  '    visitados.append(nodo)',
-  '    for vecino in grafo[nodo]:',
-  '        if vecino not in visitados:',
-  '            dfs_visitar(grafo, vecino, visitados)',
-  '        else:',
-  '            continue  # ya visitado, se omite',
-  '    return  # retroceso (backtrack)',
-];
-
-/** Líneas (índice base 1) que se resaltan para cada tipo de acción. */
-const LINEAS_POR_ACCION: Record<DfsActionType, readonly number[]> = {
-  INICIO: [1, 2],
-  VISITANDO: [10, 11],
-  EXPLORANDO: [12, 13, 14],
-  YA_VISITADO: [12, 13, 15, 16],
-  RETROCEDIENDO: [17],
-  FIN: [8],
-};
-
-/** Explicación corta de lo que hace la línea resaltada. */
-const EXPLICACION: Record<DfsActionType, string> = {
-  INICIO: 'Se crea la lista de visitados vacía y se llama a dfs_visitar con el nodo inicial.',
-  VISITANDO: 'Entramos a la función recursiva: el nodo se agrega a visitados.',
-  EXPLORANDO: 'El vecino NO está en visitados → llamada recursiva (se profundiza).',
-  YA_VISITADO: 'El vecino YA está en visitados → se omite y seguimos con el siguiente.',
-  RETROCEDIENDO: 'Ya no hay vecinos por revisar → la función regresa (backtrack).',
-  FIN: 'Se terminó el recorrido: se regresa la lista de visitados.',
-};
+import type { AlgorithmDefinition, VisualFrame } from '../types/visual';
 
 interface Props {
-  readonly estado: DfsState | null;
-  /** Nodo inicial (para mostrar la llamada raíz `dfs(grafo, inicio)`). */
-  readonly inicio: string;
+  readonly algo: AlgorithmDefinition;
+  readonly frame: VisualFrame | null;
 }
 
-export default function CodigoPython({ estado, inicio }: Props) {
-  const resaltadas = estado === null ? [] : LINEAS_POR_ACCION[estado.actionType];
-
-  // Variables locales del marco actual de Python.
-  const nodo = estado?.actionType === 'FIN' ? null : estado?.currentNode ?? null;
-  const vecino =
-    estado !== null &&
-    (estado.actionType === 'EXPLORANDO' || estado.actionType === 'YA_VISITADO')
-      ? estado.currentEdge?.to ?? null
-      : null;
+/**
+ * Panel derecho de la tarjeta: título, badges de complejidad, código Python
+ * con la línea actual resaltada y las variables del paso.
+ *
+ * El código Python es explicativo: la ejecución real la hace el generador
+ * en TypeScript; el adaptador de cada algoritmo decide qué líneas resaltar.
+ */
+export default function CodigoPython({ algo, frame }: Props) {
+  const lines = frame?.lines ?? [];
 
   return (
-    <div className="py">
-      <div className="py__titulo">
-        <span className="py__punto" /> dfs.py
+    <div className="code">
+      <header className="code__header">
+        <h2 className="code__title">{algo.name}</h2>
+        <span className="code__subtitle">{algo.subtitle}</span>
+      </header>
+
+      <div className="code__badges">
+        <span className="badge">
+          Time <b className="badge__time">{algo.time}</b>
+        </span>
+        <span className="badge">
+          Space <b className="badge__space">{algo.space}</b>
+        </span>
+        <span className="code__file">{algo.fileName}</span>
       </div>
 
-      <pre className="py__codigo">
-        {PYTHON_LINES.map((linea, i) => {
+      <pre className="code__src">
+        {algo.python.map((linea, i) => {
           const num = i + 1;
-          const activa = resaltadas.includes(num);
+          const activa = lines.includes(num);
           return (
-            <div key={num} className={activa ? 'py__linea py__linea--activa' : 'py__linea'}>
-              <span className="py__num">{num}</span>
+            <div key={num} className={activa ? 'code__line code__line--on' : 'code__line'}>
+              <span className="code__num">{num}</span>
               <span>{linea === '' ? ' ' : linea}</span>
             </div>
           );
         })}
       </pre>
 
-      <div className="py__info">
-        {estado === null ? (
-          <p>Presiona “Siguiente Paso” para ver qué línea se ejecuta.</p>
+      <div className="code__info">
+        {frame === null ? (
+          <p className="code__hint">Presiona “Siguiente Paso” o “Reproducir”.</p>
         ) : (
           <>
-            <p className="py__explicacion">{EXPLICACION[estado.actionType]}</p>
-            <p><b>nodo</b> = {nodo === null ? 'None' : `'${nodo}'`}</p>
-            <p><b>vecino</b> = {vecino === null ? '—' : `'${vecino}'`}</p>
-            <p>
-              <b>visitados</b> = [{estado.visited.map((v) => `'${v}'`).join(', ')}]
-            </p>
-            <p><b>Pila de llamadas:</b></p>
-            <ul className="py__pila">
-              {[...estado.stack].reverse().map((n, i) => (
-                <li key={n} className={i === 0 ? 'py__pila--top' : ''}>
-                  dfs_visitar(grafo, '{n}', visitados)
-                </li>
-              ))}
-              <li className={estado.stack.length === 0 ? 'py__pila--top' : ''}>
-                dfs(grafo, '{inicio}')
-              </li>
-            </ul>
+            {frame.explanation !== '' && <p className="code__explain">{frame.explanation}</p>}
+            {frame.vars.map((v) => (
+              <p key={v.name} className="code__var">
+                <b>{v.name}</b> = {v.value}
+              </p>
+            ))}
+            {frame.list !== null && (
+              <>
+                <p className="code__var">
+                  <b>{frame.list.title}</b>
+                </p>
+                <ul className="code__list">
+                  {frame.list.items.map((it, i) => (
+                    <li key={`${it}-${i}`} className={i === frame.list?.highlight ? 'on' : ''}>
+                      {it}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </>
         )}
       </div>
